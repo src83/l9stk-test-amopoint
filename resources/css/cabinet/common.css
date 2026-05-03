@@ -1,0 +1,26 @@
+/* Common CSS for all cabinet pages
+-------------------------------------------------- */
+
+html,
+body
+{
+    height: 100%;
+    margin: 0;
+}
+
+#app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* --------------------------------------------------------------------------------------------------- */
+
+.starter-template {
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
