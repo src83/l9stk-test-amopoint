@@ -15,7 +15,7 @@ Route::group([
 
 /**
  * Ajax-маршруты (placeholder for new features)
- * http://l9stk.loc/cabinet/example/ajax
+ * http://l9stk-test-amopoint.loc/cabinet/example/ajax
  */
 Route::group([
     'prefix' => 'example/ajax',

@@ -1,203 +1,216 @@
-## L9STK — Laravel 9 Starter Kit
+## L9STK Test AmoPoint — Test AmoPoint Module for Laravel 9 Starter Kit
 
-**Русская версия:** [README-RU.md](README-RU.md)
-
-- Project version: v0.4.0
+**Данное приложение — рабочий прототип платформенного подхода на базе модульного монолита L9STK Core v0.4.0**
+- Код и документация STK-сборки: https://github.com/src83/l9stk
+- Версия STK-сборки: v0.4.0
+- Версия приложения: v0.1.0
+- Статус: Development
 - Laravel: v9.52.21
 - PHP: 8.2
 
 ---
 
-### About
+### Назначение
 
-L9STK is a Laravel-based starter kit that implements a **modular monolith** approach.
-
-Each functional unit (e.g., CRUD) is encapsulated as a module.
-The goal is to simplify and speed up development of typical business features while keeping the codebase structured and scalable.
-
----
-
-### Why Modular Monolith
-
-- Reduces complexity compared to microservices
-- Maintains a clear structure as the project grows
-- Enables feature-level isolation
-- Simplifies reuse and refactoring
+- Реализация рабочего модуля / команды / API-эндпоинта
+- Реализация JS-сниппета / дополнительных требований 
+- Использование в production и demo
 
 ---
 
-### Important
+## Реализовано
 
-- This repository acts as a **core dependency**
-- New features are not added directly
-- Only infrastructure, contracts, and minimal abstractions belong here
+### Earthquake ingestion (AFAD)
+- Интеграция с API AFAD (землетрясения, Türkiye)
+- Получение данных по скользящему временному окну (UTC)
+- Маппинг ответа API → DTO (EarthquakeEventDTO)
+- Слой интеграции (Provider) изолирован от бизнес-логики
+- Сервисный слой обрабатывает сценарии:
+  - успешное получение
+  - пустой ответ
+  - ошибки внешнего API
+- Сохранение через Repository
 
----
 
-### Install
-
-- `git clone git@github.com:src83/l9stk.git`
-- set access rights according to the web server user - **mainly required for production environments**:
-
-      1. Determine your web server user (PHP-FPM owner). 
-         Typically, this is `www-data`, `user` or `nginx`. Run one of the following commands:
-         - ps aux | grep 'php-fpm: pool'
-         - grep "^user" /etc/php/*/fpm/pool.d/*.conf
-         - grep "^group" /etc/php/*/fpm/pool.d/*.conf
-    
-      2. Set permissions on all nested objects.
-         - `cd storage`
-         - `sudo chown -R <web-user>:<web-user> ./*`
-
-- copy `.env.example` to `.env` and configure it
-- `composer config --global audit.block-insecure false` 
-- `composer update`
-- `php artisan migrate`
-- `php artisan db:seed`
-- `php artisan ide-helper:models`
-- `npm install`
-- `npm run dev`
-- in the local environment, add `127.0.0.1 l9stk.loc` to `/etc/hosts`
-- open in browser `http://l9stk.loc`
+- Запуск синхронизации (консольная команда):
+  ```bash
+  php artisan earthquake:update
+  ```
+- Рекомендуемый cron:
+  ```bash
+  */5 * * * * php artisan earthquake:update
+  ```
 
 ---
 
-### Quick Start (create module)
+#### Архитектура
 
-1. Copy the reference module:
-   `app/Modules/Example → app/Modules/Post`
+Разделение по слоям:
+- Console — запуск (Artisan command)
+- Service — orchestration / бизнес-логика
+- Integrations — работа с внешним API
+- DTO — нормализация данных
+- Repository — работа с БД
 
-2. Rename:
-    - Namespace: `Example → Post`
-    - ServiceProvider
-    - Routes / Controllers / Requests
+---
 
-3. Register ServiceProvider in:
-   `config/app.php`
+#### Хранение данных
 
-4. (Optional) Add frontend assets to `webpack.mix.js`
+- Таблица earthquake_events
+- Идемпотентность через уникальный ключ event_id
+- Массовая запись через upsert
+- Автоматическое обновление существующих записей
 
-5. Run:
-    - `php artisan migrate`
-    - `npm run dev`
+---
 
-6. To create a migration inside a module, use:
-```bash
-php artisan make:migration create_example_table --path=app/Modules/Example/database/migrations
+#### UX / UI
+
+- Отсутствует (CLI-only модуль)
+
+---
+
+### Event List API
+
+REST API для доступа к сохранённым сейсмическим событиям.
+
+#### Эндпоинты
+
+| Метод | URL                  | Описание               |
+|-------|----------------------|------------------------|
+| GET   | `/api/events`        | Список событий         |
+| GET   | `/api/events/{id}`   | Одиночная запись по ID |
+
+#### Параметры
+
+**GET /api/events**
+
+| Параметр | Тип   | Обязательный | Описание                |
+|----------|-------|--------------|-------------------------|
+| `page`   | `int` | нет          | Номер страницы (min: 1) |
+
+Количество записей на странице: `config('api.items_per_page')` → env `ITEMS_PER_PAGE` (default: `15`).
+
+**GET /api/events/{id}**
+
+| Параметр | Тип   | Обязательный | Описание           |
+|----------|-------|--------------|--------------------|
+| `id`     | `int` | да           | ID записи (min: 1) |
+
+---
+
+#### Контракты ответов
+
+**Список — пустой результат**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": null, "meta": null, "data": []
+}
 ```
 
-Module is ready.
-
----
-
-### Integration Points (to connect a module)
-
-- Register module `ServiceProvider` in `config/app.php`
-  - Routes are loaded via `loadRoutes()`
-  - Views are loaded via `loadViews()`
-  - Migrations are loaded via `loadMigrations()`
-- Integrate module views into application layout (e.g., cabinet layout)
-- Frontend assets should be added to `webpack.mix.js`
-
----
-
-### Example Endpoints
-
-Cabinet:
-- `GET /cabinet/example`
-
-Ajax:
-- `GET /cabinet/example/ajax/entities`
-- `POST /cabinet/example/ajax/entities`
-
-API:
-- (reserved for external API endpoints, see `routes/api.php`)
-
----
-
-### Module Structure
-
-```
-app/Modules/Example/
- ├── Http/
- │    ├── Controllers/
- │    │     ├── Api/
- │    │     ├── Cabinet/
- │    │     │    └── Ajax/
- │    │     └── Web/
- │    │          └── Ajax/
- │    └── Requests/
- │          ├── Cabinet/
- │          │    └── StoreEntityRequest.php
- │          └── Web/
- │
- ├── Models/
- ├── Providers/
- │    └── ExampleServiceProvider.php
- │
- ├── Repositories/
- ├── Services/
- ├── database/
- │    ├── migrations/
- │    ├── factories/
- │    └── seeders/
- │
- ├── resources/
- │    ├── cabinet/
- │    │     ├── css/app.css
- │    │     ├── img/
- │    │     └── js/app.js
- │    │
- │    └── views/
- │         └── cabinet/
- │              └── example.blade.php
- │
- └── routes/
-      ├── api.php
-      ├── cabinet.php
-      └── web.php
+**Список — с данными**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": { "gui": "Опциональное сопроводительное сообщение..." },
+  "meta": {
+    "paginator": {
+      "page": 1, "per_page": 15, "total_item": 1,
+      "total_page": 1, "last_item": 1, "has_next_page": false
+    }
+  },
+  "data": [
+    { "id": 12, "location": "Menderes (İzmir)", "magnitude": "3.3" }
+  ]
+}
 ```
 
-- All modules are located in: `app/Modules`
-- `app/Modules/Example` — reference module (recommended as a starting point)
+**Список — ошибка валидации параметра**
+```json
+{
+  "success": false, "http_code": 422, "http_text": "Unprocessable Content",
+  "message": { "sys": "The page must be an integer." },
+  "details": { "fields": { "page": ["The page must be an integer."] } }
+}
+```
 
-You can copy or adapt it to create new features without rethinking architecture.
+**Одиночная запись — найдена**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": null, "meta": null,
+  "data": { "id": 3, "location": "Dalaman (Muğla)", "magnitude": "2.0" }
+}
+```
+
+**Одиночная запись — не найдена**
+```json
+{
+  "success": false, "http_code": 404, "http_text": "Not Found",
+  "message": { "sys": "Event with ID 99999 not found" },
+  "details": null
+}
+```
+
+**Одиночная запись — блокировка по бизнес-логике**
+```json
+{
+  "success": false, "http_code": 409, "http_text": "Conflict",
+  "message": { "sys": "Запись заблокирована бизнес-логикой" },
+  "details": null
+}
+```
 
 ---
 
-### Principles
+#### Поля data-объекта (EventResource)
 
-- Each module is a self-contained functional unit
-- Modules should be separable and portable
-- New features should preferably be implemented as modules
-- Non-modular code in the base framework structure (e.g., legacy) can coexist with modules without conflicts
+| Поле        | Тип      | Описание      |
+|-------------|----------|---------------|
+| `id`        | `int`    | ID записи     |
+| `location`  | `string` | Место события |
+| `magnitude` | `string` | Магнитуда     |
 
----
-
-### What the module provides
-
-- Structured and scalable architecture
-- Encapsulated logic and routing
-- Isolated views and assets
-- ServiceProvider-based integration
-- DI-ready controllers
+> Набор полей определяется в `EventResource::toArray()` и может быть расширен
+> без изменения контракта обёртки (`success`, `http_code`, `meta` и т.д.).
 
 ---
 
-### Roadmap
+#### Ограничения
 
-- Module auto-discovery (actually manual ServiceProvider registration required)
-- Dynamic webpack configuration
-- Provider auto-registration
+- API AFAD не указывает timezone явно (принят UTC)
+- Возможна задержка публикации событий API
+- Данные могут содержать неполные или некорректные значения
+- Нет пагинации/ограничения батча со стороны API
 
 ---
 
-### Notes
+### Conditional Field Visibility (JS)
 
-The current implementation uses an `Ajax` layer as an internal API for UI interactions.
+Динамическое скрытие/показ полей формы в зависимости от выбранного типа.
 
-In production-grade systems, it is recommended to use more abstract naming, such as:
-- `InternalApi`
-- `UiApi`
+#### Как работает
 
-It will help to avoid coupling with a specific transport mechanism.
+На странице есть `<select name="type_val">` и набор полей/кнопок с атрибутом `name`.
+При выборе значения в селекте остаются видимыми только те элементы, чей `name` **содержит** выбранное значение (`includes`). Остальные скрываются.
+
+Инициализация происходит автоматически при загрузке страницы по текущему значению селекта.
+
+#### Алгоритм
+
+```
+typeSelect.value → applyVisibility(value)
+  для каждого [name]:not([name="type_val"]):
+    container = el.closest('p') || el.parentElement
+    container.style.display = el.name.includes(value) ? '' : 'none'
+```
+
+#### Файлы
+
+| Файл | Описание |
+|------|----------|
+| `app/Modules/Example/resources/cabinet/js/app.js` | Исходник (Vanilla JS, IIFE) |
+| `public/js/cabinet/example/app.min.js` | Скомпилированный бандл (webpack) |
+
+---
+

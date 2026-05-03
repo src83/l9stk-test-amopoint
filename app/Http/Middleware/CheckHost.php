@@ -3,8 +3,8 @@
 namespace App\Http\Middleware;
 
 use Closure;
-use Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 
 class CheckHost
 {

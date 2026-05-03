@@ -1,62 +1,50 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+Все существенные изменения в этом проекте будут задокументированы в этом файле.
 
-The format is based on Keep a Changelog.
+Данный формат основан на системе Keep a Changelog.
 
 ## [Unreleased]
 
-## [v0.3.0] - 2026-04-03
-
-**Overview:** Introduces modular monolith architecture with a reference module and project documentation.
-
-### Features
-- Introduce modular architecture (`app/Modules`)
-- Add reference module (`Example`) as a base for new features
-- Add module-level routing, views, migrations, and assets support
+## [0.3.0] - 2026-05-30
 
 ### Added
-- Add Example module with Cabinet and Ajax endpoints
-- Add module ServiceProvider integration (routes, views, migrations)
-- Add frontend asset structure for modules
+- JS: conditional field visibility by selected type (`type_val`)
+- `app/Modules/Example/resources/cabinet/js/app.js` — Vanilla JS, IIFE pattern
+- Fields and buttons are shown/hidden based on whether their `name` contains the selected value
+- Visibility applied on page load and on every `change` event
 
-### Docs
-- Add comprehensive README with architecture description and usage guide
-- Document module structure and integration points
-
-
-## [v0.2.0] - 2026-03-16
-
-**Overview:** Introduces user settings management, improves session handling, and includes code/style maintenance and security updates.
-
-### Features 
-- Add unit user settings for authentication
-
-### Fixes
-- Improve handling of expired sessions (419 Page Expired)
-
-### Chores
-- Clean up Composer scripts and dependencies
-- Restrict API access to allowed domains
-
-### Style
-- Apply Laravel Pint formatting
-
-
-## [v0.1.0] - 2026-03-10
-
-**Overview:** Initial addition of the account UI and settings page.
+## [0.2.0] - 2026-05-28
 
 ### Added
-- Added cabinet layout and basic cabinet pages.
-- Added Settings page view.
+- REST API: `GET /api/events` — paginated list of earthquake events
+- REST API: `GET /api/events/{id}` — single event by ID
+- `EarthquakeRepository::getListPaginated()` and `findById()`
+- `EventResource` — API resource with extensible field set
+- Unified API response layer: `ApiResponse`, `ApiSuccessResponse`, `ApiErrorResponse`
+- `ApiPaginator` — pagination metadata DTO
+- Full exception handling in `Handler::handleApiException()`: 400, 401, 403, 404, 405, 409, 413, 422, 423, 4XX fallback, 5XX default
+- Feature tests: `ExceptionHandlerTest`, `EventsControllerTest`
+- Unit tests: `ApiResponseTest`
+
+### Fixed
+- `Handler`: 405 Method Not Allowed returned HTML instead of JSON when `Accept` header was absent (middleware hadn't run yet at routing stage)
 
 ### Changed
-- Improved layout structure for cabinet pages.
-- Adjusted Bootstrap layout for form fields (username, email, profile data).
-- Improved responsive spacing for cabinet layout.
-- Minor UI cleanup for Settings form.
+- Project version bumped to v0.2.0
 
-[v0.1.0]: https://github.com/src83/l9stk/commit/f937c2c900c6407207a29533cf8b458de71905f0
-[v0.2.0]: https://github.com/src83/l9stk/commit/3404dca08fda751c4e4a31eb1a0eb32af0fd0d16
-[v0.3.0]: https://github.com/src83/l9stk/commit/a520c19dc02fb4a60d5a514e3035843a4df8daaf
+## [0.1.0] - 2026-05-07
+
+### Added
+- AFAD earthquake ingestion pipeline
+- Console command `earthquake:update`
+- External API integration layer (AfadEarthquakeProvider)
+- DTO for earthquake events (`EarthquakeEventDTO`)
+- Repository with bulk upsert persistence (idempotent by `event_id`)
+- Sliding time window sync strategy (UTC-based)
+
+### Changed
+- Project version bumped to v0.1.0
+
+### Fixed
+- Code style issues (phpdoc, formatting, spacing)
