@@ -20,11 +20,11 @@ Route::group([
     'prefix' => 'user', 'as' => 'user.',
 ], static function () {
 
-    Route::group([
-        'prefix' => 'profile', 'as' => 'profile.',
-    ], static function () {
-        Route::get('/', [ProfileController::class, 'index'])->name('index');
-    });
+//    Route::group([
+//        'prefix' => 'profile', 'as' => 'profile.',
+//    ], static function () {
+//        Route::get('/', [ProfileController::class, 'index'])->name('index');
+//    });
 
     Route::group([
         'prefix' => 'settings', 'as' => 'settings.',
