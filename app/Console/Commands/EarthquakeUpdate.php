@@ -21,18 +21,13 @@ class EarthquakeUpdate extends Command
      */
     protected $description = 'Earthquake events updating from external API';
 
-
     /**
      * service instance.
-     *
-     * @var EarthquakeService
      */
     protected EarthquakeService $earthquakeService;
 
     /**
      * Create a new command instance.
-     *
-     * @param EarthquakeService $earthquakeService
      */
     public function __construct(EarthquakeService $earthquakeService)
     {
@@ -42,6 +37,7 @@ class EarthquakeUpdate extends Command
 
     /**
      * Execute the console command.
+     *
      * @throws \JsonException
      */
     public function handle(): void
@@ -52,7 +48,7 @@ class EarthquakeUpdate extends Command
             0 => $this->info('Skipped'),
             1 => $this->info('Success'),
             2 => $this->info('Response data is empty'),
-      default => $this->info('Failure'),
+            default => $this->info('Failure'),
         };
 
     }

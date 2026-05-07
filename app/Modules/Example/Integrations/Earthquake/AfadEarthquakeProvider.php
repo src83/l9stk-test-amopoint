@@ -16,7 +16,6 @@ class AfadEarthquakeProvider implements EarthquakeProviderInterface
     /**
      * https://servisnet.afad.gov.tr/apigateway/deprem/apiv2/event/filter?start=YYYY-MM-DD&end=YYYY-MM-DD
      *
-     * @return Collection
      * @throws ExternalApiException
      * @throws \Exception
      */
@@ -25,8 +24,8 @@ class AfadEarthquakeProvider implements EarthquakeProviderInterface
         $now = new DateTimeImmutable('now', new DateTimeZone('UTC'));
 
         $start = $now->modify('-6 hours')->format('Y-m-d H:i:s');
-        $end   = $now->format('Y-m-d H:i:s');
-        $requestUrl = config('api.afad_source') . '?start='.$start.'&end='.$end;
+        $end = $now->format('Y-m-d H:i:s');
+        $requestUrl = config('api.afad_source').'?start='.$start.'&end='.$end;
 
         $response = Http::get($requestUrl);
 
@@ -36,19 +35,19 @@ class AfadEarthquakeProvider implements EarthquakeProviderInterface
 
         $events = $response->json();
 
-        if (!is_array($events)) {
+        if (! is_array($events)) {
             throw new ExternalApiException('Invalid API response');
         }
 
         $eventsCollection = collect($events)->map(
             static fn (array $item) => new EarthquakeEventDTO(
                 eventId: $item['eventID'],
-                latitude: is_numeric($item['latitude']) ? (float)$item['latitude'] : null,
-                longitude: is_numeric($item['longitude']) ? (float)$item['longitude'] : null,
+                latitude: is_numeric($item['latitude']) ? (float) $item['latitude'] : null,
+                longitude: is_numeric($item['longitude']) ? (float) $item['longitude'] : null,
 
-                depth: is_numeric($item['depth']) ? (float)$item['depth'] : null,
-                magnitude: is_numeric($item['magnitude']) ? (float)$item['magnitude'] : null,
-                rms: is_numeric($item['rms']) ? (float)$item['rms'] : null,
+                depth: is_numeric($item['depth']) ? (float) $item['depth'] : null,
+                magnitude: is_numeric($item['magnitude']) ? (float) $item['magnitude'] : null,
+                rms: is_numeric($item['rms']) ? (float) $item['rms'] : null,
                 type: is_string($item['type']) ? $item['type'] : null,
 
                 location: is_string($item['location']) ? $item['location'] : null,
@@ -57,11 +56,11 @@ class AfadEarthquakeProvider implements EarthquakeProviderInterface
                 district: is_string($item['district']) ? $item['district'] : null,
                 neighborhood: is_string($item['neighborhood']) ? $item['neighborhood'] : null,
 
-                eventMoment: !empty($item['date'])
+                eventMoment: ! empty($item['date'])
                     ? new DateTimeImmutable($item['date'], new DateTimeZone('UTC'))
                     : throw new ExternalApiException('Invalid date'),
 
-                isEventUpdate: (bool)$item['isEventUpdate'],
+                isEventUpdate: (bool) $item['isEventUpdate'],
 
                 lastUpdateDate: isset($item['lastUpdateDate'])
                     ? new DateTimeImmutable($item['lastUpdateDate'], new DateTimeZone('UTC'))

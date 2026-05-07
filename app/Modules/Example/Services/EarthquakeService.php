@@ -12,13 +12,12 @@ readonly class EarthquakeService
 {
     public function __construct(
         private EarthquakeProviderInterface $provider,
-        private EarthquakeRepository        $repository,
+        private EarthquakeRepository $repository,
     ) {}
 
     /**
      * CLI: Console command "php artisan earthquake:update".
      *
-     * @return int
      * @throws \JsonException
      */
     public function eventsUpdate(): int
@@ -27,6 +26,7 @@ readonly class EarthquakeService
             $events = $this->provider->getEvents();
             if ($events->isEmpty()) {
                 logger()->warning('No earthquake events returned');
+
                 return 2;
             }
 
@@ -36,11 +36,13 @@ readonly class EarthquakeService
             logger()->error('External API error', [
                 'message' => $e->getMessage(),
             ]);
+
             return 3;
         } catch (\Throwable $e) {
             logger()->error('Unexpected error', [
                 'message' => $e->getMessage(),
             ]);
+
             return 3;
         }
     }

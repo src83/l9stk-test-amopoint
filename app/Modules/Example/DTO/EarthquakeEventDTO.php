@@ -11,19 +11,19 @@ final readonly class EarthquakeEventDTO
     public function __construct(
 
         public string $eventId,
-        public ?float $latitude = null,
-        public ?float $longitude = null,
+        public ?float $latitude,
+        public ?float $longitude,
 
-        public ?float $depth = null,
-        public ?float $magnitude = null,
-        public ?float $rms = null,
-        public ?string $type = null,
+        public ?float $depth,
+        public ?float $magnitude,
+        public ?float $rms,
+        public ?string $type,
 
-        public ?string $location = null,
-        public ?string $country = null,
-        public ?string $province = null,
-        public ?string $district = null,
-        public ?string $neighborhood = null,
+        public ?string $location,
+        public ?string $country,
+        public ?string $province,
+        public ?string $district,
+        public ?string $neighborhood,
 
         public DateTimeImmutable $eventMoment,
         public bool $isEventUpdate,
