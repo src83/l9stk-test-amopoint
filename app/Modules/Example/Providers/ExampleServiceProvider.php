@@ -2,6 +2,8 @@
 
 namespace App\Modules\Example\Providers;
 
+use App\Modules\Example\Integrations\Earthquake\AfadEarthquakeProvider;
+use App\Modules\Example\Integrations\Earthquake\EarthquakeProviderInterface;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -9,7 +11,7 @@ class ExampleServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        //
+        $this->app->bind(EarthquakeProviderInterface::class, AfadEarthquakeProvider::class);
     }
 
     public function boot(): void
