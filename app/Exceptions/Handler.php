@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\DTO\ApiErrorDTO;
 use Exception;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
@@ -9,7 +10,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Session\TokenMismatchException;
+use Psr\Container\NotFoundExceptionInterface;
 use Psr\Log\LogLevel;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -64,20 +68,63 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception|Throwable $e)
     {
-        // Fix of "419 Page Expired"
+        // WEB only: стандартная HTML-страница ошибки
+        // 419: CSRF - Page Expired
         if ($e instanceof TokenMismatchException) {
-            if ($request->expectsJson()) {
-                return response()->json([
-                    'message' => 'CSRF token mismatch',
-                ], 419);
-            }
-
             return redirect()
                 ->route('showLoginForm')
                 ->with('session_expired', true)
                 ->withInput($request->except('_token'));
         }
 
+        // API only: Обрабатываем все исключения в едином JSON-формате
+        if ($request->expectsJson()) {
+            $errorData = $this->handleApiException($request, $e);
+            return response()->json($errorData->toArray(), $errorData->httpCode);
+        }
+
         return parent::render($request, $e);
+    }
+
+
+    /**
+     * Единая обработка исключений для API / логика обработки и категоризация ошибок
+     */
+    protected function handleApiException(Request $request, Throwable $e): ApiErrorDTO
+    {
+        $isDebug  = config('app.debug') === true;
+
+        // 404: NotFound — Не найдено
+        if ($e instanceof NotFoundHttpException || $e instanceof NotFoundExceptionInterface) {
+            $statusCode = HttpResponse::HTTP_NOT_FOUND;
+            $statusText = Response::$statusTexts[$statusCode] ?? 'Not Found';
+            $sysMessage = $e->getMessage() ?: $statusText;
+            return new ApiErrorDTO(httpCode: $statusCode, sysMessage: $sysMessage);
+        }
+
+        // Default (5XX)
+        $statusCode = HttpResponse::HTTP_INTERNAL_SERVER_ERROR;
+        $statusText = Response::$statusTexts[$statusCode] ?? 'Internal Server Error';
+        $sysMessage = $e->getMessage() ?: $statusText;
+        $details = $isDebug ? [
+            'request' => [
+                'time' => now()->toIso8601String(),
+                'method' => $request->method(),
+                'uri' => $request->path(),
+                'params' => $request->except(['password', 'password_confirmation', 'token', 'secret', 'api_key']),
+            ],
+            'exception' => [
+                'file' => $e->getFile(),
+                'type' => get_class($e),
+                'line' => $e->getLine(),
+                'code' => $e->getCode(),
+            ],
+        ] : null;
+
+        return new ApiErrorDTO(
+            httpCode: $statusCode,
+            sysMessage: $sysMessage,
+            details: $details,
+        );
     }
 }
