@@ -4,6 +4,7 @@ namespace App\Modules\Example\Providers;
 
 use App\Modules\Example\Integrations\Earthquake\AfadEarthquakeProvider;
 use App\Modules\Example\Integrations\Earthquake\EarthquakeProviderInterface;
+use Config;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +24,11 @@ class ExampleServiceProvider extends ServiceProvider
 
     protected function loadRoutes(): void
     {
+        Route::middleware(['api'])
+            ->prefix(Config::get('constants.API_PREFIX'))
+            ->as('api.')
+            ->group(__DIR__.'/../routes/api.php');
+
         Route::middleware(['web', 'auth'])
             ->prefix('cabinet')
             ->as('cabinet.')
