@@ -6,10 +6,18 @@ namespace App\Modules\Example\Repositories;
 
 use App\Modules\Example\DTO\EarthquakeEventDTO;
 use App\Modules\Example\Models\EarthquakeEvent;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 class EarthquakeRepository
 {
+    public function getListPaginated(int $page, int $perPage): LengthAwarePaginator
+    {
+        return EarthquakeEvent::query()
+            ->orderBy('event_moment', 'desc')
+            ->paginate(perPage: $perPage, page: $page);
+    }
+
     public function save(Collection $events): int
     {
         if ($events->isEmpty()) {

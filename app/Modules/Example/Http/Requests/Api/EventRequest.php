@@ -24,7 +24,7 @@ final class EventRequest extends CommonRequest
 
         // GET: show()
         if ($this->routeIs('api.events.show')) {
-            $rules = ['id' => 'required|integer|between:0,5'];
+            $rules = ['id' => 'required|integer|min:1'];
         }
 
         return $rules;
