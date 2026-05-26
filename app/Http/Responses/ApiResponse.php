@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Responses;
 
-use App\Support\Api\Logging\ApiLogger;
-use App\Support\Api\Logging\DTO\ApiRenderedErrorDTO;
 use App\Support\Api\Pagination\ApiPaginator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -35,7 +33,6 @@ class ApiResponse extends JsonResponse
      * @param mixed|null $data Основные данные ответа
      * @param ApiPaginator|null $paginator Метаданные пагинации
      * @param int $httpCode HTTP-код (по умолчанию 200)
-     * @param string|null $messageKey Словарный ключ для поиска перевода в указанной локали
      * @param string|null $guiMessage Локализованное сообщение для вывода в GUI
      * @return self
      */
@@ -43,7 +40,6 @@ class ApiResponse extends JsonResponse
         mixed $data = null,
         ?ApiPaginator $paginator = null,
         int $httpCode = 200,
-        ?string $messageKey = null,
         ?string $guiMessage = null,
     ): self
     {
@@ -58,9 +54,8 @@ class ApiResponse extends JsonResponse
             'data' => $data,
         ];
 
-        if ($messageKey !== null || $guiMessage !== null) {
+        if ($guiMessage !== null) {
             $response['message'] = [
-                'key' => $messageKey,
                 'gui' => $guiMessage,
             ];
         }
@@ -89,16 +84,12 @@ class ApiResponse extends JsonResponse
      *  }
      *
      * @param int $httpCode HTTP-код
-     * @param string|null $messageKey Словарный ключ для поиска перевода в указанной локали
-     * @param string|null $guiMessage Локализованное сообщение для вывода в GUI
      * @param string|null $sysMessage Кастомное сообщение из аргумента исключения (если не указано - возвращает null)
      * @param mixed|null $details Дополнительные данные (например, ошибки валидации)
      * @return self
      */
     public static function error(
         int $httpCode,
-        ?string $messageKey = null,
-        ?string $guiMessage = null,
         ?string $sysMessage = null,
         mixed $details = null,
     ): self
@@ -113,23 +104,11 @@ class ApiResponse extends JsonResponse
             'details' => $details,
         ];
 
-        if ($messageKey !== null || $guiMessage !== null || $sysMessage !== null) {
+        if ($sysMessage !== null) {
             $response['message'] = [
-                'key' => $messageKey,
-                'gui' => $guiMessage,
                 'sys' => $sysMessage,
             ];
         }
-
-        $responseData = new ApiRenderedErrorDTO(
-            httpCode: $httpCode,
-            httpText: $httpText,
-            messageKey: $messageKey,
-            guiMessage: $guiMessage,
-            sysMessage: $sysMessage,
-            details: $details,
-        );
-        app(ApiLogger::class)->captureRenderedError($responseData);
 
         return new self($response, $httpCode);
     }

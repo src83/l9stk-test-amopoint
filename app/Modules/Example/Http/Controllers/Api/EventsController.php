@@ -6,12 +6,14 @@ namespace App\Modules\Example\Http\Controllers\Api;
 
 use App\Exceptions\ItemNotFoundException;
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiErrorResponse;
 use App\Http\Responses\ApiSuccessResponse;
 use App\Modules\Example\Http\Requests\Api\EventRequest;
 use App\Modules\Example\Http\Resources\Api\EventResource;
 use App\Modules\Example\Repositories\EarthquakeRepository;
 use App\Support\Api\Pagination\ApiPaginator;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class EventsController extends Controller
 {
@@ -22,7 +24,7 @@ class EventsController extends Controller
     public function index(EventRequest $request): JsonResponse
     {
         $page = $request->integer('page', 1);
-        $perPage = 15;
+        $perPage = 15; // todo: вынести в конфиг
 
         $paginator = $this->repository->getListPaginated($page, $perPage);
         if($paginator->isEmpty()) {
@@ -31,7 +33,8 @@ class EventsController extends Controller
 
         return ApiSuccessResponse::make(
             data: EventResource::collection($paginator),
-            paginator: ApiPaginator::from($paginator)
+            paginator: ApiPaginator::from($paginator),
+            guiMessage: 'Опциональное сопроводительное сообщение (актуально для POST-запросов)',
         );
     }
 
