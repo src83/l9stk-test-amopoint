@@ -6,6 +6,25 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-28
+
+### Added
+- REST API: `GET /api/events` — paginated list of earthquake events
+- REST API: `GET /api/events/{id}` — single event by ID
+- `EarthquakeRepository::getListPaginated()` and `findById()`
+- `EventResource` — API resource with extensible field set
+- Unified API response layer: `ApiResponse`, `ApiSuccessResponse`, `ApiErrorResponse`
+- `ApiPaginator` — pagination metadata DTO
+- Full exception handling in `Handler::handleApiException()`: 400, 401, 403, 404, 405, 409, 413, 422, 423, 4XX fallback, 5XX default
+- Feature tests: `ExceptionHandlerTest`, `EventsControllerTest`
+- Unit tests: `ApiResponseTest`
+
+### Fixed
+- `Handler`: 405 Method Not Allowed returned HTML instead of JSON when `Accept` header was absent (middleware hadn't run yet at routing stage)
+
+### Changed
+- Project version bumped to v0.2.0
+
 ## [0.1.0] - 2026-05-07
 
 ### Added
