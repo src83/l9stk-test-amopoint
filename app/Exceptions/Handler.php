@@ -108,8 +108,11 @@ class Handler extends ExceptionHandler
                 ->withInput($request->except('_token'));
         }
 
-        // API only: Обрабатываем все исключения в едином JSON-формате
-        if ($request->expectsJson()) {
+        // API only: Обрабатываем все исключения в едином JSON-формате.
+        // Проверяем также по префиксу: middleware SetupHeadersApiRequest не успевает
+        // выставить Accept: application/json до броска исключения на этапе роутинга (405, 404 и т.п.)
+        $apiPrefix = config('constants.API_PREFIX', 'api');
+        if ($request->expectsJson() || $request->is($apiPrefix . '/*')) {
             $errorData = $this->handleApiException($request, $e);
             return ApiErrorResponse::make(...$errorData->toArray());
         }
@@ -154,7 +157,15 @@ class Handler extends ExceptionHandler
         // 404: ItemNotFound - Запись не найдена
         if ($e instanceof ItemNotFoundException) {
             $statusCode = HttpResponse::HTTP_NOT_FOUND;
-            $statusText = Response::$statusTexts[$statusCode] ?? 'Not Found';
+            $statusText = Response::$statusTexts[$statusCode] ?? 'Item not Found';
+            $sysMessage = $e->getMessage() ?: $statusText;
+            return new ApiErrorDTO(httpCode: $statusCode, sysMessage: $sysMessage);
+        }
+
+        // 404: ModelNotFound — Модель не найдена
+        if ($e instanceof ModelNotFoundException) {
+            $statusCode = HttpResponse::HTTP_NOT_FOUND;
+            $statusText = Response::$statusTexts[$statusCode] ?? 'Model not found';
             $sysMessage = $e->getMessage() ?: $statusText;
             return new ApiErrorDTO(httpCode: $statusCode, sysMessage: $sysMessage);
         }

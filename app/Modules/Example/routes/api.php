@@ -7,4 +7,5 @@ Route::group([
     'prefix' => 'events',
 ], static function () {
     Route::get('/', [EventsController::class, 'index'])->name('events.list');
+    Route::get('/{id}', [EventsController::class, 'show'])->name('events.show');
 });

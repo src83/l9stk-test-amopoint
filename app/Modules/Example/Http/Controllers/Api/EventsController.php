@@ -24,7 +24,7 @@ class EventsController extends Controller
     public function index(EventRequest $request): JsonResponse
     {
         $page = $request->integer('page', 1);
-        $perPage = 15; // todo: вынести в конфиг
+        $perPage = (int) config('api.items_per_page');
 
         $paginator = $this->repository->getListPaginated($page, $perPage);
         if($paginator->isEmpty()) {
@@ -40,6 +40,19 @@ class EventsController extends Controller
 
     public function show(EventRequest $request, int $id): JsonResponse
     {
-        throw new ItemNotFoundException("Event with ID {$id} not found");
+        if ($id === 13) {
+            return ApiErrorResponse::make(
+                Response::HTTP_CONFLICT,
+                'Запись заблокирована бизнес-логикой',
+            );
+        }
+
+        $item = $this->repository->findById($id);
+
+        if (!$item) {
+            throw new ItemNotFoundException("Event with ID {$id} not found");
+        }
+
+        return ApiSuccessResponse::make(new EventResource($item));
     }
 }

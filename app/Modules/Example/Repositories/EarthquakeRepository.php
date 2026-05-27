@@ -18,6 +18,11 @@ class EarthquakeRepository
             ->paginate(perPage: $perPage, page: $page);
     }
 
+    public function findById(int $id): ?EarthquakeEvent
+    {
+        return EarthquakeEvent::find($id);
+    }
+
     public function save(Collection $events): int
     {
         if ($events->isEmpty()) {
