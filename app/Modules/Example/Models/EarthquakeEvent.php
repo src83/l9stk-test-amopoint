@@ -4,6 +4,9 @@ namespace App\Modules\Example\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @mixin \Eloquent
+ */
 class EarthquakeEvent extends Model
 {
     protected $fillable = [

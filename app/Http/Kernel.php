@@ -7,6 +7,7 @@ use App\Http\Middleware\CheckHost;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\SetupHeadersApiRequest;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
 use App\Http\Middleware\ValidateSignature;
@@ -62,7 +63,8 @@ class Kernel extends HttpKernel
         ],
 
         'api' => [
-            CheckHost::class,
+            SetupHeadersApiRequest::class,
+            #CheckHost::class,
             // \Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             'throttle:api',
             SubstituteBindings::class,
