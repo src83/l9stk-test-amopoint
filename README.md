@@ -69,6 +69,113 @@
 
 ---
 
+### Event List API
+
+REST API для доступа к сохранённым сейсмическим событиям.
+
+#### Эндпоинты
+
+| Метод | URL                  | Описание               |
+|-------|----------------------|------------------------|
+| GET   | `/api/events`        | Список событий         |
+| GET   | `/api/events/{id}`   | Одиночная запись по ID |
+
+#### Параметры
+
+**GET /api/events**
+
+| Параметр | Тип   | Обязательный | Описание                |
+|----------|-------|--------------|-------------------------|
+| `page`   | `int` | нет          | Номер страницы (min: 1) |
+
+Количество записей на странице: `config('api.items_per_page')` → env `ITEMS_PER_PAGE` (default: `15`).
+
+**GET /api/events/{id}**
+
+| Параметр | Тип   | Обязательный | Описание           |
+|----------|-------|--------------|--------------------|
+| `id`     | `int` | да           | ID записи (min: 1) |
+
+---
+
+#### Контракты ответов
+
+**Список — пустой результат**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": null, "meta": null, "data": []
+}
+```
+
+**Список — с данными**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": { "gui": "Опциональное сопроводительное сообщение..." },
+  "meta": {
+    "paginator": {
+      "page": 1, "per_page": 15, "total_item": 1,
+      "total_page": 1, "last_item": 1, "has_next_page": false
+    }
+  },
+  "data": [
+    { "id": 12, "location": "Menderes (İzmir)", "magnitude": "3.3" }
+  ]
+}
+```
+
+**Список — ошибка валидации параметра**
+```json
+{
+  "success": false, "http_code": 422, "http_text": "Unprocessable Content",
+  "message": { "sys": "The page must be an integer." },
+  "details": { "fields": { "page": ["The page must be an integer."] } }
+}
+```
+
+**Одиночная запись — найдена**
+```json
+{
+  "success": true, "http_code": 200, "http_text": "OK",
+  "message": null, "meta": null,
+  "data": { "id": 3, "location": "Dalaman (Muğla)", "magnitude": "2.0" }
+}
+```
+
+**Одиночная запись — не найдена**
+```json
+{
+  "success": false, "http_code": 404, "http_text": "Not Found",
+  "message": { "sys": "Event with ID 99999 not found" },
+  "details": null
+}
+```
+
+**Одиночная запись — блокировка по бизнес-логике**
+```json
+{
+  "success": false, "http_code": 409, "http_text": "Conflict",
+  "message": { "sys": "Запись заблокирована бизнес-логикой" },
+  "details": null
+}
+```
+
+---
+
+#### Поля data-объекта (EventResource)
+
+| Поле        | Тип      | Описание      |
+|-------------|----------|---------------|
+| `id`        | `int`    | ID записи     |
+| `location`  | `string` | Место события |
+| `magnitude` | `string` | Магнитуда     |
+
+> Набор полей определяется в `EventResource::toArray()` и может быть расширен
+> без изменения контракта обёртки (`success`, `http_code`, `meta` и т.д.).
+
+---
+
 #### Ограничения
 
 - API AFAD не указывает timezone явно (принят UTC)
