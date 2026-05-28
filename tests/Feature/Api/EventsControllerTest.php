@@ -5,12 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\Api;
 
 use App\Modules\Example\Models\EarthquakeEvent;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class EventsControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        EarthquakeEvent::query()->delete();
+    }
 
     private function createEvent(array $overrides = []): EarthquakeEvent
     {

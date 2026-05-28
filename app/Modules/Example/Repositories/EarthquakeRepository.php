@@ -14,7 +14,7 @@ class EarthquakeRepository
     public function getListPaginated(int $page, int $perPage): LengthAwarePaginator
     {
         return EarthquakeEvent::query()
-            ->orderBy('event_moment', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(perPage: $perPage, page: $page);
     }
 
