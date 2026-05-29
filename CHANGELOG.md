@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-30
+
+### Added
+- JS: conditional field visibility by selected type (`type_val`)
+- `app/Modules/Example/resources/cabinet/js/app.js` — Vanilla JS, IIFE pattern
+- Fields and buttons are shown/hidden based on whether their `name` contains the selected value
+- Visibility applied on page load and on every `change` event
+
 ## [0.2.0] - 2026-05-28
 
 ### Added

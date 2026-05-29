@@ -185,3 +185,32 @@ REST API для доступа к сохранённым сейсмически�
 
 ---
 
+### Conditional Field Visibility (JS)
+
+Динамическое скрытие/показ полей формы в зависимости от выбранного типа.
+
+#### Как работает
+
+На странице есть `<select name="type_val">` и набор полей/кнопок с атрибутом `name`.
+При выборе значения в селекте остаются видимыми только те элементы, чей `name` **содержит** выбранное значение (`includes`). Остальные скрываются.
+
+Инициализация происходит автоматически при загрузке страницы по текущему значению селекта.
+
+#### Алгоритм
+
+```
+typeSelect.value → applyVisibility(value)
+  для каждого [name]:not([name="type_val"]):
+    container = el.closest('p') || el.parentElement
+    container.style.display = el.name.includes(value) ? '' : 'none'
+```
+
+#### Файлы
+
+| Файл | Описание |
+|------|----------|
+| `app/Modules/Example/resources/cabinet/js/app.js` | Исходник (Vanilla JS, IIFE) |
+| `public/js/cabinet/example/app.min.js` | Скомпилированный бандл (webpack) |
+
+---
+
